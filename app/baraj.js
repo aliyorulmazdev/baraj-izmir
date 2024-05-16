@@ -19,7 +19,7 @@ const BarajListesi = ({ barajlar, handleClick }) => (
 );
 
 const BarajDetay = ({ baraj }) => {
-  const { speak } = useSpeechSynthesis();
+  const { speak, cancel, speaking } = useSpeechSynthesis();
 
   // Convert values to cubic hectometers
   const convertToHM3 = (value) => {
@@ -28,7 +28,7 @@ const BarajDetay = ({ baraj }) => {
 
   // Function to read details aloud
   const readDetailsAloud = () => {
-    const details = `Tahtalı Barajı. Su Durumu ${convertToHM3(baraj.SuDurumu)} hm³. Su Yüksekliği ${baraj.SuYuksekligi} m. Kullanılabilir Gölsü Hacmi ${convertToHM3(baraj.KullanılabilirGolSuHacmi)} hm³. Tüketilebilir Su Kapasitesi ${convertToHM3(baraj.TuketilebilirSuKapasitesi)} hm³. Maksimum Su Kapasitesi ${convertToHM3(baraj.MaksimumSuKapasitesi)} hm³. Minimum Su Yüksekliği ${baraj.MinimumSuYuksekligi} m. Doluluk Oranı ${baraj.DolulukOrani}%. Durum Tarihi ${new Date(baraj.DurumTarihi).toLocaleDateString()}. Minimum Su Kapasitesi ${convertToHM3(baraj.MinimumSuKapasitesi)} hm³. Maksimum Su Yüksekliği ${baraj.MaksimumSuYuksekligi} m.`;
+    const details = `${baraj.BarajKuyuAdi}. Su Durumu ${convertToHM3(baraj.SuDurumu)} hm³. Su Yüksekliği ${baraj.SuYuksekligi} m. Kullanılabilir Gölsü Hacmi ${convertToHM3(baraj.KullanılabilirGolSuHacmi)} hm³. Tüketilebilir Su Kapasitesi ${convertToHM3(baraj.TuketilebilirSuKapasitesi)} hm³. Maksimum Su Kapasitesi ${convertToHM3(baraj.MaksimumSuKapasitesi)} hm³. Minimum Su Yüksekliği ${baraj.MinimumSuYuksekligi} m. Doluluk Oranı ${baraj.DolulukOrani}%. Durum Tarihi ${new Date(baraj.DurumTarihi).toLocaleDateString()}. Minimum Su Kapasitesi ${convertToHM3(baraj.MinimumSuKapasitesi)} hm³. Maksimum Su Yüksekliği ${baraj.MaksimumSuYuksekligi} m.`;
     speak({ text: details, lang: "tr-TR" });
   };
 
@@ -37,6 +37,14 @@ const BarajDetay = ({ baraj }) => {
     window.open(`https://tr.wikipedia.org/wiki/${formattedKeyword}`, "_blank");
   };
 
+  useEffect(() => {
+    // Cleanup function to stop speech synthesis when baraj changes
+    return () => {
+      if (speaking) {
+        cancel();
+      }
+    };
+  }, [baraj, cancel, speaking]);
 
   return (
     <div className="mt-4">
@@ -107,10 +115,10 @@ const BarajDetay = ({ baraj }) => {
           Wikipedia'da Ara
         </button>
         <button
-          onClick={readDetailsAloud}
+          onClick={speaking ? cancel : readDetailsAloud}
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
         >
-          Sesli Oku
+          {speaking ? "Durdur" : "Sesli Oku"}
         </button>
       </div>
     </div>
